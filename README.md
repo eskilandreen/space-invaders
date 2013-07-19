@@ -1,4 +1,4 @@
-# space-invaders-clj
+# space-invaders
 
 Invaders - possibly from space!
 
