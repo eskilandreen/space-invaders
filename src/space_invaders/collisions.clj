@@ -1,8 +1,7 @@
-(ns space-invaders.collisions
-  (:require [clojure.set :as s]))
+(ns space-invaders.collisions)
 
-(defn contains [x y top bottom left right]
-  (and (< left x right ) (< top y bottom)))
+(defn- alien-contains-projectile?* [x y top bottom left right]
+  (and (<= left x right ) (<= top y bottom)))
 
 (defn alien-contains-projectile? [projectile alien alien-swarm]
   (let [x (:x projectile)
@@ -11,20 +10,19 @@
         bottom (+ top 20)
         left (+ (* 24 (:x alien)) (:x alien-swarm))
         right (+ left 20)]
-    (contains x y top bottom left right)))
+    (alien-contains-projectile?* x y top bottom left right)))
 
-(defn- alien-hits [game]
+(defn alien-hits [game]
   (let [alien-swarm (:alien-swarm game)]
     (->> (for [p (:projectiles game)
                a (:aliens alien-swarm)
                :when (alien-contains-projectile? p a alien-swarm)]
            [p a])
-         (reduce (fn [hits [p a]] (s/union hits #{p a})) #{}))))
+         (reduce (fn [hits [p a]] (conj hits p a)) #{}))))
 
 (defn handle-collisions [game]
-  (let [hits (alien-hits game)
-        missed? #(complement (contains? hits %))]
+  (let [filter-hits-fn (partial remove (alien-hits game))]
     (-> game
-        (assoc :projectiles (filter missed? (:projectiles game)))
-        (assoc-in [:alien-swarm :aliens] (filter missed? (-> game :alien-swarm :aliens))))))
+        (update-in [:projectiles] filter-hits-fn)
+        (update-in [:alien-swarm :aliens] filter-hits-fn))))
 
