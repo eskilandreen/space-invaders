@@ -18,7 +18,7 @@
                a (:aliens alien-swarm)
                :when (alien-contains-projectile? p a alien-swarm)]
            [p a])
-         (reduce (fn [hits [p a]] (conj hits p a)) #{}))))
+         (reduce (partial apply conj) #{}))))
 
 (defn handle-collisions [game]
   (let [filter-hits-fn (partial remove (alien-hits game))]
